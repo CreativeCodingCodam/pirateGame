@@ -8,9 +8,9 @@ void ofApp::reset() {
 	ticks = 0;
 	stats = { 0, 0, 0 };
 	player = ship();
-	mines.clear();
+	kegs.clear();
 	enemies.clear();
-	input.addMine = false;
+	input.addKeg = false;
 	input.presses.clear();
 }
 
@@ -21,9 +21,9 @@ void ofApp::setup() {
 	background.allocate(windowSize.x, windowSize.y, OF_IMAGE_COLOR);
 	ofDisableArbTex();
 
-	ofLoadImage(sprites.mine, "keg.png");
-	sprites.mine.generateMipmap();
-	sprites.mine.setTextureMinMagFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+	ofLoadImage(sprites.keg, "keg.png");
+	sprites.keg.generateMipmap();
+	sprites.keg.setTextureMinMagFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 	fonts.small.load("verdana.ttf", 12);
 	fonts.medium.load("verdana.ttf", 24);
 	reset();
@@ -46,19 +46,19 @@ void ofApp::updatePlayer() {
 	}
 }
 
-void ofApp::updateMines() {
-	if (input.addMine) {
+void ofApp::updateKegs() {
+	if (input.addKeg) {
 		stats.kegsLaunched++;
-		mines.emplace_back(player);
-		input.addMine = false;
+		kegs.emplace_back(player);
+		input.addKeg = false;
 	}
 
-	for (mine& mine : mines) {
-		mine.update(player, enemies);
+	for (keg& keg : kegs) {
+		keg.update(player, enemies);
 	}
 
-	std::erase_if(mines, [](const mine& mine) {
-		return mine.isActive == false;
+	std::erase_if(kegs, [](const keg& keg) {
+		return keg.isActive == false;
 	});
 }
 
@@ -81,12 +81,12 @@ void ofApp::updateEnemies() {
 
 void ofApp::update() {
 	ticks++;
-	kegs = std::min(maxKegs, kegs + 0.01f);
+	loadedKegs = std::min(maxKegs, loadedKegs + 0.01f);
 	if (gameState == GameState::ENDED) {
 		return;
 	}
 	stats.wave = stats.kills / 10;
-	updateMines();
+	updateKegs();
 	updatePlayer();
 	updateEnemies();
 }
@@ -126,20 +126,20 @@ static glm::vec2 getPos(glm::vec2 kegSize, int i) {
 
 void ofApp::drawKegs() {
 	constexpr glm::vec2 kegSize(25, 35);
-	float				frac = kegs - std::floor(kegs);
+	float				frac = loadedKegs - std::floor(loadedKegs);
 	int					i = 0;
 
-	ofSetColor(mine::colour);
-	for (; i < std::floor(kegs); i++) {
-		sprites.mine.draw(getPos(kegSize, i), kegSize.x, kegSize.y);
+	ofSetColor(keg::colour);
+	for (; i < std::floor(loadedKegs); i++) {
+		sprites.keg.draw(getPos(kegSize, i), kegSize.x, kegSize.y);
 	}
 	
 	if (frac) {
-		sprites.mine.drawSubsection(
+		sprites.keg.drawSubsection(
 			getPos(kegSize, i).x,				getPos(kegSize, i).y,
 			kegSize.x * frac,					kegSize.y,
 			0,									0,
-			sprites.mine.getWidth() * frac,		sprites.mine.getHeight()
+			sprites.keg.getWidth() * frac,		sprites.keg.getHeight()
 		);
 	}
 
@@ -148,8 +148,8 @@ void ofApp::drawKegs() {
 
 void ofApp::draw() {
 	drawBackground();
-	for (const mine & mine : mines) {
-		mine.draw();
+	for (const keg& keg : kegs) {
+		keg.draw();
 	}
 	for (const ship& enemy : enemies) {
 		enemy.draw();
@@ -181,10 +181,10 @@ void ofApp::keyPressed(int key) {
 	case OF_KEY_SPACE:
 		if (gameState == GameState::ENDED) {
 			reset();
-		} else if (input.nextMine <= ticks && kegs >= 1) {
-			kegs--;
-			input.addMine = true;
-			input.nextMine = ticks + input.mineDelay;
+		} else if (input.nextKeg <= ticks && loadedKegs >= 1) {
+			loadedKegs--;
+			input.addKeg = true;
+			input.nextKeg = ticks + input.kegDelay;
 		}
 		break;
 	}

@@ -96,13 +96,13 @@ class ship : public entity {
 		};
 };
 
-class mine : public entity {
+class keg : public entity {
 	public:
 		inline static const ofColor	colour = ofColor(255, 127, 0, 255);
 		uint64_t					ticks = 0;
 		bool						isActive = true;
 
-		mine(const ship& fromShip) {
+		keg(const ship& fromShip) {
 			const glm::vec2	backOfShip = fromShip.pos + fromShip.dir * (-fromShip.size.x / 2);
 			pos = backOfShip;
 			dir = { 0, 1 }; // normalised default direction
@@ -161,13 +161,13 @@ struct fonts {
 };
 
 struct sprites {
-	ofTexture	mine; // need raw texture for higher texure quality at low res
+	ofTexture	keg; // need raw texture for higher texure quality at low res
 };
 
 struct input {
-	bool							addMine;
-	static constexpr int			mineDelay = 5;
-	uint64_t						nextMine;
+	bool							addKeg;
+	static constexpr int			kegDelay = 5;
+	uint64_t						nextKeg;
 	std::unordered_map<int, bool>	presses;
 };
 
@@ -178,7 +178,7 @@ class ofApp : public ofBaseApp{
 
 		void update();
 		void updatePlayer();
-		void updateMines();
+		void updateKegs();
 		void updateEnemies();
 
 		void drawBackground();
@@ -203,10 +203,10 @@ class ofApp : public ofBaseApp{
 		GameState			gameState = GameState::PLAYING;
 		uint64_t			ticks = 0;
 
-		float				maxKegs = 5, kegs = maxKegs;
+		float				maxKegs = 5, loadedKegs = maxKegs;
+		std::vector<keg>	kegs;
 		ship				player;
 		std::vector<ship>	enemies;
-		std::vector<mine>	mines;
 
 		input				input;
 		gameStats			stats;
